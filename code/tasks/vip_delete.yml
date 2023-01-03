@@ -1,0 +1,70 @@
+---
+
+- name: Delete VIP DEMO
+  hosts: local
+  connection: local
+  vars_files:
+   - ../vars/main.yml
+  handlers:
+    - import_tasks: ../handlers/main.yml
+
+  tasks:
+    - set_fact:
+        provider:
+          password: "{{ansible_ssh_pass}}"
+          server: "{{ansible_bigip_managment}}"
+          user: "{{ansible_ssh_user}}"
+          validate_certs: no
+          server_port: 443
+
+      # Delete the VIP DEMO
+    - name: Delete the Virtual Server DEMO
+      bigip_virtual_server:
+        provider: "{{ provider }}"
+        partition: "{{ partition }}"
+        name: "DEMO_VS_{{ env }}"
+        state: absent
+      notify: Save the running configuration to disk
+
+    # Delete the Content Switching Policy onto F5
+    - name: Delete the Content Switching policy DEMO
+      bigip_policy:
+        provider: "{{ provider }}"
+        partition: "{{ partition }}"
+        name: "DEMO_CS_POLICY_{{ env }}"
+        state: absent
+
+    # Delete Content Switching Policy Rules onto F5 
+    - name: Delete Content Switching Policy Rules onto F5
+      bigip_policy_rule:
+        provider: "{{ provider}}"
+        partition: "{{ partition }}"
+        name: "POLICY_RULE_{{ item.path_begins_with }}_{{ env }}"
+        state: absent
+      loop: "{{ policy }}"
+
+    # Delete Pools
+    - name: Delete Pools
+      bigip_pool:
+        provider: "{{ provider }}"
+        partition: "{{ partition }}"
+        name: "DEMO_{{ item.name }}_POOL_{{ env }}"
+        state: absent
+      with_items: "{{ instances }}"
+
+    # Delete the Health Check Monitor
+    - name: Delete the Health Check Monitor
+      bigip_monitor_https:
+        provider: "{{ provider }}"
+        partition: "{{ partition }}"
+        name: "DEMO_MONITOR_{{ env }}"
+        state: absent
+
+    # Delete Nodes
+    - name: Delete Nodes
+      bigip_node:
+        provider: "{{ provider }}"
+        partition: "{{ partition }}"
+        name: "DEMO_{{ item.1 }}_NODE"
+        state: absent
+      loop: "{{ instances | subelements('nodes') }}"

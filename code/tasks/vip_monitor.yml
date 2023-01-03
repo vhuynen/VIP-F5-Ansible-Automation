@@ -1,0 +1,15 @@
+---
+
+  # Create the HTTP Monitor
+  - name: Create or Update HTTPS Monitor
+  # https://docs.ansible.com/ansible/latest/collections/f5networks/f5_modules/bigip_monitor_https_module.html
+    bigip_monitor_https:
+      provider: "{{ provider }}"
+      partition: "{{ partition }}"
+      name: "DEMO_MONITOR_{{ env }}"
+      description: "Health Check monitoring for the DEMO VIP"
+      interval: 5
+      send: "GET /exploitation/surveillance HTTP/1.1\r\nHost: server.com\r\n\r\n"
+      receive: "200"
+      state: present
+    notify: Save the running configuration to disk

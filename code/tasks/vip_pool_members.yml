@@ -1,0 +1,25 @@
+---
+
+  # https://docs.ansible.com/ansible/latest/collections/f5networks/f5_modules/bigip_gtm_pool_module.html#ansible-collections-f5networks-f5-modules-bigip-gtm-pool-module
+  - name: Create Pools
+    bigip_pool:
+      provider: "{{ provider }}"
+      partition: "{{ partition }}"
+      description: "Instance Pool for the DEMO"
+      lb_method: round-robin
+      monitors: "DEMO_MONITOR_{{ env }}"
+      name: "DEMO_{{ item.name }}_POOL_{{ env }}"
+    with_items: "{{ instances }}"
+
+  - name: Add members to Pools
+    bigip_pool_member:
+      provider: "{{ provider }}"
+      partition: "{{ partition }}"
+      name: "DEMO_{{ item.1 }}_NODE"
+      description: "Pool Member for the DEMO"
+      host: "{{ item.1 }}"
+      pool: "DEMO_{{ item.0.name}}_POOL_{{ env }}"
+      port: "{{ item.0.port }}"
+#      state: "{{ item.1.value| default('absent') }}"
+    loop: "{{ instances | subelements('nodes') }}"
+    notify: Save the running configuration to disk

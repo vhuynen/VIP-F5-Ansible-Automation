@@ -1,0 +1,33 @@
+---
+
+# tasks file for dynamic routing
+- name: Create dynamic routing for Virtual IP
+  hosts: local
+  connection: local
+  any_errors_fatal: true
+  vars_files:
+    - ../vars/main.yml
+  handlers:
+    - import_tasks: ../handlers/main.yml
+
+  tasks:
+    - set_fact:
+        provider:
+          password: "{{ansible_ssh_pass}}"
+          server: "{{ansible_bigip_managment}}"
+          user: "{{ansible_ssh_user}}"
+          validate_certs: no
+          server_port: 443
+
+    - block : 
+        - name: Create or update the HTTP Monitor
+           include_tasks: ./vip_monitor.yml
+
+        - name: Create or update Pool Members
+          include_tasks: ./vip_pool_members.yml
+
+        - name: Create or update Rules Policy
+          include_tasks: ./vip_cs_policy_rules.yml
+
+        - name: Create or update Virtual Server
+          include_tasks: ./vip_virtual_server.yml

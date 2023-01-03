@@ -1,0 +1,22 @@
+---
+
+ # Create the Virtual Server 
+  - name: Create or Update the Virtual Server
+    bigip_virtual_server:
+      provider: "{{ provider }}"
+      partition: "{{ partition }}"
+      description: "Virtual IP DEMO"
+      destination: "{{ vip_ip_address }}"
+      name: "DEMO_VS_{{ env }}"
+      policies:
+        - "DEMO_CS_POLICY_{{ env }}"
+      port: "{{ vip_port }}"
+      pool: "DEMO_default_POOL_{{ env }}"
+      snat: Automap      
+      profiles:
+        - http
+        - name: "{{ profil-server-ssl }}"
+          context: server-side
+        - name: "{{ profil-client-ssl }}"
+          context: client-side        
+    notify: Save the running configuration to disk

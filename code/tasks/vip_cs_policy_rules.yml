@@ -1,0 +1,26 @@
+---
+
+  # Create the Policie for the Virtual IP DEMO
+  - name: Create DEMO Policy URL Based Routing
+    bigip_policy:
+      provider: "{{ provider }}"
+      partition: "{{ partition }}"
+      name: "DEMO_CS_POLICY_{{ env }}"
+      strategy: first
+      state: present
+
+  - name: Add multiple rules to the policy
+    bigip_policy_rule:
+      provider: "{{ provider}}"
+      partition: "{{ partition }}"
+      policy: "DEMO_CS_POLICY_{{ env }}"
+      name: "POLICY_RULE_{{ item.path_begins_with }}_{{ env }}"
+      actions:
+        - type: forward
+          pool: "DEMO_{{ item.instance }}_POOL_{{ env }}"
+      conditions:
+        - type: http_uri
+          path_begins_with_any: "/{{ item.path_begins_with }}/"
+      state: "{{ item.state | default('present') }}"
+    loop: "{{ policy }}"
+    notify: Save the running configuration to disk

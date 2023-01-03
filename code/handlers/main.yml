@@ -1,0 +1,7 @@
+---
+# handlers file for dynamic routing
+  # https://support.f5.com/csp/article/K10531487
+  - name: Save the running configuration to disk
+    bigip_config:
+      provider: "{{ provider }}"
+      save: yes

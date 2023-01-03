@@ -1,0 +1,50 @@
+---
+# vars file for DEMO Virtual IP
+
+# Big-IP login parameters
+ansible_ssh_user: admin
+ansible_ssh_pass: password
+ansible_bigip_managment: 10.200.41.173
+
+# Common parameters
+env: POC
+partition: demo
+
+# Virtual Server paramters
+vip_ip_address: 10.0.0.80
+vip_port: 80
+# Profil SSL pour la terminaison SSL Server de la VIP vis-à-vis des Clients (KeyStore)
+profil-client-ssl: DEMO_CLIENT_SSL
+# Profil SSL pour les connexions SSL au Back-end COVEO TP (TrustStore)  
+profil-server-ssl: DEMO_SERVER_SSL
+
+# Pool Members
+instances:
+  - name: salesforce
+    port: 1111
+    nodes:
+      - 10.0.0.11
+      - 10.0.0.12
+      - 10.0.0.13        
+  - name: client
+    port: 2222
+    nodes:
+      - 10.0.0.11
+      - 10.0.0.12
+      - 10.0.0.13  
+  - name: default
+    port: 3333
+    nodes:
+      - 10.0.0.14
+      - 10.0.0.15
+
+policy:
+  - path_begins_with: salesforce-test
+    instance: salesforce
+  - path_begins_with: demo
+    instance: default
+  - path_begins_with: client-1
+    instance: client
+  - path_begins_with: client-2
+    instance: client
+    state: absent
